@@ -1,0 +1,1155 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>OSS Mobile</title>
+<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+<meta http-equiv="cache-control" content="max-age=0" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+<meta http-equiv="pragma" content="no-cache" />
+<link rel="apple-touch-icon" sizes="57x57" href="./appicons/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="./appicons/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="./appicons/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="./appicons/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="./appicons/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="./appicons/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="./appicons/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="./appicons/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./appicons/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="./appicons/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./appicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="./appicons/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./appicons/favicon-16x16.png">
+<link rel="manifest" href="./appicons/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="./appicons/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+<link rel="shortcut icon" href="./appicons//avicon.ico" type="image/x-icon">
+<link rel="icon" href="./appicons/favicon.ico" type="image/x-icon">
+<style>
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+#map {
+	width: 100%;
+	height: 100%;
+}
+img.thumbnail {
+	//width: 300px;
+	width: 100%;
+	//height: 100%;
+}
+div.elementlocation {
+	color: grey;
+	font-size: 85%;
+    font-weight: bold;
+}
+div.source {
+	color: grey;
+	text-align: right;
+	font-size: 70%;
+}
+div.links {
+	color: grey;
+	text-align: right;
+	font-size: 70%;
+}
+div.cmstext {
+	color: yellow;
+	text-align: center;
+	font-family: monospace;
+	//font-family: "Lucida Console", Monaco, monospace;
+	//font-family: "Courier New", Courier, monospace;
+	font-size: 125%;
+    //font-weight: bold;
+	background-color: black;
+	padding: 5px 10px;
+}
+div.incidentheader {
+	color: black;
+	text-align: left;
+	font-family: monospace;
+	//font-family: "Lucida Console", Monaco, monospace;
+	font-size: 85%;
+    //font-weight: bold;
+}
+div.incidentdetail {
+	color: black;
+	text-align: left;
+	font-family: monospace;
+	//font-family: "Lucida Console", Monaco, monospace;
+	font-size: 80%;
+    //font-weight: bold;
+	max-height:100px
+	//overflow-y:auto;
+}
+div.chainheader {
+	color: black;
+	text-align: left;
+	font-family: monospace;
+	//font-family: "Lucida Console", Monaco, monospace;
+	font-size: 85%;
+    //font-weight: bold;
+}
+div.splash {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	//bottom: 60%;
+	//left: 40%;
+	z-index: 5;
+	background-color: #fff;
+	//padding: 2px;
+	//border: 1px solid #999;
+	//text-align: left;
+	//font-family: 'Roboto','sans-serif';
+	//line-height: 30px;
+	//width: 300px;
+}
+span.label  
+{  
+    font-weight: bold;
+}
+textarea  
+{  
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 100%;
+	//width: 95%;
+	width: 220px;
+}
+</style>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script>
+//*********************************************************************************
+//*** Global Variables
+//*********************************************************************************
+
+// The map
+var map;
+
+// The InfoWindow
+var infoWindow;
+
+// Array of cameras.
+var cameraArray;
+
+// Array of weather times.
+var weatherArray;
+
+// Array of cms.
+var cmsArray;
+
+// Array of incidents.
+var incidentsArray;
+
+// Array of chain control.
+var chainsArray;
+
+// Array of camera markers.
+var markers;
+
+// The index of the current selected camera.
+var currentIndex = -1;
+
+// Camera JSON loaded.
+var cameraJSONloaded = false;
+
+// Weather JSON loaded.
+var weatherJSONloaded = false;
+
+// CMS JSON loaded.
+var cmsJSONloaded = false;
+
+// Incidents JSON loaded.
+var incidentsJSONloaded = false;
+
+// Chain Control JSON loaded.
+var chainsJSONloaded = false;
+
+// Map loaded.
+var mapLoaded = false;
+
+// ID for setInterval timer.
+var timerID = -1;
+
+// Ground Overlay for Weather
+var wxOverlay;
+
+// The name of the file
+var fileName;
+
+// Is the location included in the URL?
+var locInURL;
+
+// Is the location included in the cookie? Only check if not in URL ...
+var locInCookie;
+
+// Has the preliminary location been determined by the browser?
+var locInPreliminaryBrowser;
+
+// Is the infowindow sticky - opened by click?
+var stickyWindowOpen = false;
+
+//*********************************************************************************
+
+function LogAnalyticsEvent(eventCategory, eventAction, eventLabel) {
+	//console.log(eventCategory + "," + eventAction + "," + eventLabel);
+	ga('send', {
+		hitType: 'event',
+		eventCategory: eventCategory,
+		eventAction: eventAction,
+		eventLabel: eventLabel
+	});
+}
+
+function DataLoadedAndMapInitialized() {
+	if ((cmsJSONloaded == true) && (cameraJSONloaded == true) && (incidentsJSONloaded == true) && (chainsJSONloaded == true) && (weatherJSONloaded == true) && (mapLoaded == true)) {
+	//if ((cameraJSONloaded == true) && (mapLoaded == true)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+function LoadJSON() {
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving Data ...";
+	
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving CCTV Data ...";
+	var xmlhttp1 = new XMLHttpRequest();
+	var url1 = "/data/CCTV/OSS_cctv.json";
+	xmlhttp1.onreadystatechange = function() {
+		if (xmlhttp1.readyState == 4 && xmlhttp1.status == 200) {
+			var myArr1 = JSON.parse(xmlhttp1.responseText);
+			cameraArray = myArr1[0];
+			cameraJSONloaded = true;
+			document.getElementById("splash-panel").innerHTML += "<br>Done Downloading CCTV Data ...";
+		}
+	};
+	xmlhttp1.open("GET", url1, true);
+	xmlhttp1.send();
+	
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving Weather Forecast Data ...";
+	var xmlhttp2 = new XMLHttpRequest();
+	var url2 = "/data/FORECAST_WEATHER/wx.json";
+	xmlhttp2.onreadystatechange = function() {
+		if (xmlhttp2.readyState == 4 && xmlhttp2.status == 200) {
+			var myArr2 = JSON.parse(xmlhttp2.responseText);
+			weatherArray = myArr2;
+			weatherJSONloaded = true;
+			document.getElementById("splash-panel").innerHTML += "<br>Done Downloading Weather Forecast Data ...";
+		}
+	};
+	xmlhttp2.open("GET", url2, true);
+	xmlhttp2.send();
+	
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving CMS Data ...";
+	var xmlhttp3 = new XMLHttpRequest();
+	var url3 = "/data/CMS/OSS_cms.json";
+	xmlhttp3.onreadystatechange = function() {
+		if (xmlhttp3.readyState == 4 && xmlhttp3.status == 200) {
+			var myArr3 = JSON.parse(xmlhttp3.responseText);
+			cmsArray = myArr3[0];
+			cmsJSONloaded = true;
+			document.getElementById("splash-panel").innerHTML += "<br>Done Downloading CMS Data ...";
+		}
+	};
+	xmlhttp3.open("GET", url3, true);
+	xmlhttp3.send();
+	
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving Incident Data ...";
+	var xmlhttp4 = new XMLHttpRequest();
+	var url4 = "/data/INCIDENTS/OSS_incidents.json";
+	xmlhttp4.onreadystatechange = function() {
+		if (xmlhttp4.readyState == 4 && xmlhttp4.status == 200) {
+			var myArr4 = JSON.parse(xmlhttp4.responseText);
+			incidentsArray = myArr4[0];
+			incidentsJSONloaded = true;
+			document.getElementById("splash-panel").innerHTML += "<br>Done Downloading Incident Data ...";
+		}
+	};
+	xmlhttp4.open("GET", url4, true);
+	xmlhttp4.send();
+	
+	document.getElementById("splash-panel").innerHTML += "<br>Retrieving Chain Control Data ...";
+	var xmlhttp5 = new XMLHttpRequest();
+	var url5 = "/data/CHAIN/OSS_chain.json";
+	xmlhttp5.onreadystatechange = function() {
+		if (xmlhttp5.readyState == 4 && xmlhttp5.status == 200) {
+			var myArr5 = JSON.parse(xmlhttp5.responseText);
+			chainsArray = myArr5[0];
+			chainsJSONloaded = true;
+			document.getElementById("splash-panel").innerHTML += "<br>Done Downloading Chain Control Data ...";
+		}
+	};
+	xmlhttp5.open("GET", url5, true);
+	xmlhttp5.send();
+	
+	timerID = setInterval(function(){ CheckJSONandMapload(); }, 1000);
+	setTimeout(function(){ SlowLoad(); }, 30000);	
+}
+
+function CheckJSONandMapload() {
+	if (DataLoadedAndMapInitialized()==true) {
+			clearInterval(timerID);	
+			AddMapContent();
+	}
+}
+
+function SlowLoad() {
+	document.getElementById("splash-panel").innerHTML += "<br><br>It is taking a long time to load traveler information data ... OSS Mobile works best with an LTE or high-speed wi-fi connection.";
+	document.getElementById("splash-panel").innerHTML += "<br><br>You can wait and see if the data loads or <a href=\"\" onclick=\"LogAnalyticsEvent('m_SlowLoadClick', 'm_SlowLoadClick', 'm_SlowLoadClick'); window.location.reload();\">click here to try to load traveler information data again.</a>";
+	document.getElementById("splash-panel").innerHTML += "<br><br>If this problem persists, please check your network connection.</a>";
+}
+	
+function initMap() {
+	document.getElementById("splash-panel").innerHTML += "<br>Initializing Map ...";
+			
+	var tmpPathRegexResult = /([^\/]+$)/.exec(window.location.href);
+	if ( tmpPathRegexResult === null) {
+		filenameAndParams="";
+	}
+	else {
+		filenameAndParams = tmpPathRegexResult[0];
+	}
+	var filenameRegexResult = /(^[^?]+)/.exec(filenameAndParams);
+	if ( filenameRegexResult === null) {
+		filename="";
+	}
+	else {
+		filename = filenameRegexResult[0];
+	}
+	
+	var url_lat;
+	var url_lng;
+	var url_zoom;
+	locInURL = false;
+	try {
+		var strclng = /clng=([^&]+)/.exec(window.location.href)[1];
+		var strclat = /clat=([^&]+)/.exec(window.location.href)[1];
+		var strzoom = /zoom=([^&]+)/.exec(window.location.href)[1];
+		url_lat = parseFloat(strclat);
+		url_lng = parseFloat(strclng);
+		url_zoom = parseInt(strzoom);
+		if ((url_lat<=50) && (url_lat>=25) && (url_lng<=-100) && (url_lng>=-125) && (url_zoom<=21) && (url_zoom>=4)) {
+			locInURL = true;
+		}
+		else {
+			locInURL = false;
+		}
+	}
+	catch (e) {
+		locInURL = false;
+	}
+	
+	var cookie_lat;
+	var cookie_lng;
+	var cookie_zoom;
+	locInCookie = false;
+	try {
+		var strclng = getCookie("clng");
+		var strclat = getCookie("clat");
+		var strzoom = getCookie("zoom");
+		cookie_lat = parseFloat(strclat);
+		cookie_lng = parseFloat(strclng);
+		cookie_zoom = parseInt(strzoom);
+		if ((cookie_lat<=50) && (cookie_lat>=25) && (cookie_lng<=-100) && (cookie_lng>=-125) && (cookie_zoom<=21) && (cookie_zoom>=4)) {
+			locInCookie = true;
+		}
+		else {
+			locInCookie = false;
+		}
+	}
+	catch (e) {
+		locInCookie = false;
+	}
+	
+	var prelimbrowser_lat;
+	var prelimbrowser_lng;
+	var prelimbrowser_zoom;
+	locInPreliminaryBrowser = false;
+	if (google.loader.ClientLocation) {
+		prelimbrowser_lat = google.loader.ClientLocation.latitude;
+		prelimbrowser_lng = google.loader.ClientLocation.longitude;
+		prelimbrowser_zoom = 8;
+		if ((prelimbrowser_lat<=50) && (prelimbrowser_lat>=25) && (prelimbrowser_lng<=-100) && (prelimbrowser_lng>=-125) && (prelimbrowser_zoom<=21) && (prelimbrowser_zoom>=4)) {
+			locInPreliminaryBrowser = true;
+		}
+		else {
+			locInPreliminaryBrowser = false;
+		}
+	}
+	
+	var initial_lat = 40.5;
+	var initial_lng = -114.00;
+	var initial_zoom = 5;
+	
+	if (locInURL == true) {
+		initial_lat = url_lat;
+		initial_lng = url_lng;
+		initial_zoom = url_zoom;	
+	}
+	else if (locInCookie == true) {
+		initial_lat = cookie_lat;
+		initial_lng = cookie_lng;
+		initial_zoom = cookie_zoom;	
+	}
+	else if (locInPreliminaryBrowser == true) {
+		initial_lat = prelimbrowser_lat;
+		initial_lng = prelimbrowser_lng;
+		initial_zoom = prelimbrowser_zoom;
+	}
+	else {
+		initial_lat = 40.5;
+		initial_lng = -114.0;
+		initial_zoom = 5;	
+	}
+		
+	var userLoc = { lat: initial_lat , lng: initial_lng };
+
+	// Create a map and center it 
+	map = new google.maps.Map(document.getElementById('map'), {
+		zoom: initial_zoom,
+		center: userLoc,
+		mapTypeId: 'terrain'
+	});
+	
+	LogAnalyticsEvent("m_Load", "m_LoadLocation", "m_(" + initial_lat + "," + initial_lng + "," + initial_zoom + ")");
+  
+	infoWindow = new google.maps.InfoWindow({ maxWidth : 250, disableAutoPan : true });
+
+	var trafficLayer = new google.maps.TrafficLayer();
+	trafficLayer.setMap(map);
+  
+	map.addListener('idle', function(event) {
+		try {
+			var center = map.getCenter();
+			var lat = Math.round(center.lat()*100000)/100000;
+			var lng = Math.round(center.lng()*100000)/100000;
+			var zoom = map.getZoom();
+			var stateObj = { oss: "oss" };
+			//history.pushState(stateObj, "page 2", "bar.html?center="+center+"&zoom="+zoom);
+			//history.replaceState(stateObj, "page 2", "test26.htm?center="+center+"&zoom="+zoom);
+			history.replaceState(stateObj, "OSS Mobile", filename + "?clat="+lat+"&clng="+lng+"&zoom="+zoom);
+			//document.cookie = "osscookie=" + zoom + ";expires=Fri, 31 Dec 9999 23:59:59 GMT;path=/";
+			setCookie("clat",lat);
+			setCookie("clng",lng);
+			setCookie("zoom",zoom);
+		}
+		catch(err) {
+		
+		}
+	});
+
+	mapLoaded = true;
+	
+	if ((locInURL == false) && (locInCookie == false) && (locInPreliminaryBrowser == false) && (navigator.geolocation)) {
+    	navigator.geolocation.getCurrentPosition(gotoPosition);
+	}
+}
+
+// ********************************************************************************************************
+
+//date object functions to make formatting a date easier
+Date.prototype.getDayName = function () {
+	return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][this.getDay()];
+};
+
+Date.prototype.getMonthName = function () {
+	return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+			'Oct', 'Nov', 'Dec'][this.getMonth()];
+};
+
+Date.prototype.getMinute = function () {
+	return ((String(this.getMinutes()).length > 1) ?
+			String(this.getMinutes()) : '0' + String(this.getMinutes()));
+};
+
+Date.prototype.getHour = function () {
+	if (this.getHours() === 0) {
+		return "12";
+	} else {
+		return (String((this.getHours() > 12) ?
+					   this.getHours() - 12 : this.getHours()));
+	}
+};
+
+Date.prototype.getAMPM = function () {
+	return (this.getHours() >= 12) ? "PM" : "AM";
+};
+
+Date.prototype.stdOffset = function () {
+	return Math.max((new Date(this.getFullYear(), 0, 1)).getTimezoneOffset(),
+					(new Date(this.getFullYear(), 6, 1)).getTimezoneOffset());
+};
+
+Date.prototype.isDST = function () {
+	return this.getTimezoneOffset() < this.stdOffset();
+};
+
+Date.prototype.getTimezoneName = function () {
+	if (this.isDST()) {
+		return ['UTC', 0, 0, 'ADT', 'EDT', 'CDT', 'MDT', 'PDT',
+				'AKDT', 'HADT', 'SDT'][this.getTimezoneOffset() / 60];
+	} else {
+		return ['UTC', 0, 0, 0, 'AST', 'EST', 'CST', 'MST', 'PST',
+				'AKST', 'HAST', 'SST'][this.getTimezoneOffset() / 60];
+	}
+};
+
+Date.prototype.getFormattedTime = function () {
+	return this.getHour() + ":" + this.getMinute() + " " + this.getAMPM();
+};
+
+//formats a date as HH:MM [AM|PM] TZ - ddd, mmm dd yyyy
+formatDate = function (timestring) {
+	var dt = new Date(Date.UTC(timestring.slice(0, 4),
+							   timestring.slice(4, 6) - 1,
+							   timestring.slice(6, 8),
+							   timestring.slice(8, 10),
+							   timestring.slice(10, 12)));
+	
+	return (dt.getFormattedTime() + ' ' +
+			dt.getTimezoneName() + ', ' +
+			//dt.getDayName() + ', ' +
+			dt.getMonthName() + ' ' +
+			String(dt.getDate()) + ' ' +
+			String(dt.getFullYear()));
+};
+
+//formats a date as HH[AM|PM] TZ, ddd, mm/dd/yyyy
+formatDate2 = function (timestring) {
+	var dt = new Date(Date.UTC(timestring.slice(0, 4),
+							   timestring.slice(4, 6) - 1,
+							   timestring.slice(6, 8),
+							   timestring.slice(8, 10),
+							   timestring.slice(10, 12)));
+	
+	return (dt.getHour() + dt.getAMPM() + " " +
+			dt.getTimezoneName() + ", " +
+			dt.getDayName() + " " +
+			String(dt.getMonth() + 1) + "/" +
+			String(dt.getDate()) + "/" +
+			String(dt.getFullYear()));
+};
+
+
+// ********************************************************************************************************
+// *** Adapted from: http://www.w3schools.com/js/js_cookies.asp
+// ********************************************************************************************************
+function setCookie(cname,cvalue) {
+	var expires = "expires=Fri, 31 Dec 9999 23:59:59 GMT";
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+// ********************************************************************************************************
+	
+	
+function gotoPosition(position) {
+	if (confirm('Zoom to location provided by browser?')) {
+		map.panTo(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+		map.setZoom(8);
+	}
+}
+
+// Uses global variable currentIndex.
+// Side effect: currentIndex set to newIndex upon return.
+function HighlightMarkerAtIndex(newIndex) {
+	if  ((newIndex != -1) && (newIndex != currentIndex)) {
+		if  (currentIndex != -1) {
+			//markers[currentIndex].setIcon({ url: (markers[currentIndex].getIcon()).url,	scaledSize: new google.maps.Size(25, 25)});
+			var sSize = (markers[currentIndex].getIcon()).scaledSize;
+			var newSize = new google.maps.Size(sSize.width/2, sSize.height/2);
+			markers[currentIndex].setIcon({ url: (markers[currentIndex].getIcon()).url,	scaledSize: newSize});
+			if (markers[currentIndex].noimage == false) {
+					markers[currentIndex].setZIndex(markers[currentIndex].zIndex-1);
+			}
+			else {
+				markers[currentIndex].setZIndex(0);
+			}
+		}
+		var sSize = (markers[newIndex].getIcon()).scaledSize;
+		var newSize = new google.maps.Size(sSize.width*2, sSize.height*2);
+		markers[newIndex].setIcon({ url: (markers[newIndex].getIcon()).url,	scaledSize: newSize});
+	}
+	currentIndex = newIndex;
+}
+
+// Uses global variable currentIndex.
+function RestoreMarkerAtIndex() {
+	if  (currentIndex != -1) {
+		//markers[currentIndex].setIcon({ url: (markers[currentIndex].getIcon()).url,	scaledSize: new google.maps.Size(25, 25)});
+		var sSize = (markers[currentIndex].getIcon()).scaledSize;
+		var newSize = new google.maps.Size(sSize.width/2, sSize.height/2);
+		markers[currentIndex].setIcon({ url: (markers[currentIndex].getIcon()).url,	scaledSize: newSize});
+		if (markers[currentIndex].noimage == false) {
+			markers[currentIndex].setZIndex(markers[currentIndex].zIndex-1);
+		}
+		else {
+			markers[currentIndex].setZIndex(0);
+		}
+	}
+}
+
+function ShowCurrentElement(toggleVisible) {
+	if (currentIndex != -1) {
+		if (markers[currentIndex].elementtype=="CCTV") {
+			var element = cameraArray[markers[currentIndex].elementindex];
+			var nearpoint = new google.maps.LatLng(element.latitude, element.longitude);
+			var tempurl = "" + element.url;
+			var temparr = tempurl.split(",");
+			var weatherurl = "http://mobile.weather.gov/index.php?lat=" + element.latitude + "&lon=" + element.longitude + "&unit=0&lg=english";
+			var url = temparr[0];
+			var content = "<div onclick=\"closeInfoWindow();\">" +
+				"<div class=\"elementlocation\">" + element.location + "</div>" +
+				"<img class=\"thumbnail\" src=\"" + url +  "\" onerror=\"setNoImage(this,currentIndex);\">" +
+				"<div class=\"source\">SOURCE: " + element.source + "</div>" +
+				"<div class=\"links\"><a target=\"_blank\" href=\"" + weatherurl + "\" onclick=\"LogAnalyticsEvent('m_Link', 'm_NWS', '" + weatherurl + "');\">NWS FORECAST (opens in new tab)</a></div>" +
+				"</div>";
+			infoWindow.setContent(content);
+			infoWindow.open(map,markers[currentIndex]);
+			LogAnalyticsEvent("m_Marker", "m_CCTV", "m_(" + element.latitude + "," + element.longitude + ")");
+		}
+		if (markers[currentIndex].elementtype=="CMS") {
+			var element = cmsArray[markers[currentIndex].elementindex];
+			var nearpoint = new google.maps.LatLng(element.latitude, element.longitude);
+			var weatherurl = "http://mobile.weather.gov/index.php?lat=" + element.latitude + "&lon=" + element.longitude + "&unit=0&lg=english";
+			var cmsHTML = "";
+			if (element["url"]) {
+				cmsHTML = "<img width=100% src=\"http://" + element["url"] + "\">";
+			}
+			else {
+				cmsHTML = "<div class=\"cmstext\">";
+				if (element["text"][0][0].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][0][0].trim() + "<br />";
+				}
+				if (element["text"][0][1].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][0][1].trim() + "<br />";
+				}
+				if (element["text"][0][2].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][0][2].trim() + "<br />";
+				}
+				if ((element["text"][1][0].trim().length > 0) || (element["text"][1][0].trim().length > 0) || (element["text"][1][0].trim().length > 0)) {
+					cmsHTML = cmsHTML + "--------------------<br />";
+				}
+				if (element["text"][1][0].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][1][0].trim() + "<br />";
+				}
+				if (element["text"][1][1].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][1][1].trim() + "<br />";
+				}
+				if (element["text"][1][2].trim().length > 0) {
+					cmsHTML = cmsHTML + element["text"][1][2].trim() + "<br />";
+				}
+				cmsHTML = cmsHTML + "</div>";
+			}
+			var content = "<div onclick=\"closeInfoWindow();\">" +
+				"<div class=\"elementlocation\">" + element.location + "</div>" +
+				//"<img class=\"thumbnail\" src=\"" + url +  "\" onerror=\"setNoImage(this,currentIndex);\">" +
+				cmsHTML +
+				"<div class=\"source\">SOURCE: " + element.source + "</div>" +
+				"<div class=\"links\"><a target=\"_blank\" href=\"" + weatherurl + "\" onclick=\"LogAnalyticsEvent('m_Link', 'm_NWS', '" + weatherurl + "');\">NWS FORECAST (opens in new tab)</a></div>" +
+				"</div>";
+			infoWindow.setContent(content);
+			infoWindow.open(map,markers[currentIndex]);
+			LogAnalyticsEvent("m_Marker", "m_CMS", "m_(" + element.latitude + "," + element.longitude + ")");
+		}
+		if (markers[currentIndex].elementtype=="Incident") {
+			var element = incidentsArray[markers[currentIndex].elementindex];
+			var nearpoint = new google.maps.LatLng(element.latitude, element.longitude);
+			var weatherurl = "http://mobile.weather.gov/index.php?lat=" + element.latitude + "&lon=" + element.longitude + "&unit=0&lg=english";
+			
+			var incidentHTML = "";
+			
+			if (element.source == "CHP") {
+				incidentHTML = "<div class=\"incidentheader\">";
+				incidentHTML = incidentHTML + "<span class=\"label\">Type:</span> " + element["type"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Area:</span> " + element["area"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				incidentHTML = incidentHTML + "</div>";
+				incidentHTML = incidentHTML + "<div class=\"incidentdetail\">";
+				var incidentDetailText = "";
+				if (element["detail"]) {
+					if (element["detail"].length > 0) {
+						for(var d=0; d<element["detail"].length; d++) {
+							incidentDetailText = incidentDetailText + formatDate(element["detail"][d][0]) + "\n";	
+							incidentDetailText = incidentDetailText + element["detail"][d][1] + "\n";				
+						}
+						incidentDetailText = incidentDetailText + "\n";
+					}
+				}
+				if (element["units"]) {
+					if (element["units"].length > 0) {
+						incidentDetailText = incidentDetailText + "Responding Officer Status:\n";
+						incidentDetailText = incidentDetailText + "--------------------------\n\n";
+						for(var u=0; u<element["units"].length; u++) {
+							incidentDetailText = incidentDetailText + formatDate(element["units"][u][0]) + "\n";	
+							incidentDetailText = incidentDetailText + element["units"][u][1] + "\n";				
+						}
+					}
+				}
+				if ((element["detail"]) || (element["units"])) {
+					if ((element["detail"].length > 0) || (element["units"].length > 0)) {
+						incidentHTML = incidentHTML + "<span class=\"label\">Details:</span>\n";
+						incidentHTML = incidentHTML + "<textarea rows=\"12\" readonly>\n";
+						incidentHTML = incidentHTML + incidentDetailText;
+						incidentHTML = incidentHTML + "</textarea>\n";
+					}
+				}
+				incidentHTML = incidentHTML + "</div>";
+			}
+			if (element.source == "ODOT") {
+				incidentHTML = "<div class=\"incidentheader\">";
+				incidentHTML = incidentHTML + "<span class=\"label\">Type:</span> " + element["type"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Start Time:</span> " + formatDate(element["starttime"]) + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Clear Time:</span> " + formatDate(element["cleartime"]) + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Route:</span> " + element["route"] + " , ";
+				incidentHTML = incidentHTML + "<span class=\"label\">Milepost:</span> " + element["milepost"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Severity:</span> " + element["severity"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Advice:</span> " + element["advice"] + "<br />";
+				incidentHTML = incidentHTML + "</div>";
+				incidentHTML = incidentHTML + "<div class=\"incidentdetail\">";
+				var incidentDetailText = "";
+				if (element["detail"]) {
+					if (element["detail"].length > 0) {
+						for(var d=0; d<element["detail"].length; d++) {
+							incidentDetailText = incidentDetailText + element["detail"][d][0] + "\n";
+						}
+						incidentDetailText = incidentDetailText + "\n";
+						incidentHTML = incidentHTML + "<span class=\"label\">Details:</span>\n";
+						incidentHTML = incidentHTML + "<textarea rows=\"8\" readonly>\n";
+						incidentHTML = incidentHTML + incidentDetailText;
+						incidentHTML = incidentHTML + "</textarea>\n";
+					}
+				}
+				incidentHTML = incidentHTML + "</div>";
+			}
+			if (element.source == "WSDOT") {
+				incidentHTML = "<div class=\"incidentheader\">";
+				incidentHTML = incidentHTML + "<span class=\"label\">Type:</span> " + element["type"] + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Start Time:</span> " + formatDate(element["starttime"]) + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				incidentHTML = incidentHTML + "<span class=\"label\">Route:</span> " + element["route"] + " , ";
+				incidentHTML = incidentHTML + "<span class=\"label\">Milepost:</span> " + element["milepost"] + "<br />";
+				incidentHTML = incidentHTML + "</div>";
+				incidentHTML = incidentHTML + "<div class=\"incidentdetail\">";
+				var incidentDetailText = "";
+				if (element["detail"]) {
+					if (element["detail"].length > 0) {
+						for(var d=0; d<element["detail"].length; d++) {
+							incidentDetailText = incidentDetailText + element["detail"][d][0] + "\n";
+						}
+						incidentDetailText = incidentDetailText + "\n";
+						incidentHTML = incidentHTML + "<span class=\"label\">Details:</span>\n";
+						incidentHTML = incidentHTML + "<textarea rows=\"8\" readonly>\n";
+						incidentHTML = incidentHTML + incidentDetailText;
+						incidentHTML = incidentHTML + "</textarea>\n";
+					}
+				}
+				incidentHTML = incidentHTML + "</div>";
+			}
+			
+			var content = "<div onclick=\"closeInfoWindow();\">" +
+				"<div class=\"elementlocation\">" + element.location + "</div>" +
+				incidentHTML +
+				"<div class=\"source\">SOURCE: " + element.source + "</div>" +
+				"<div class=\"links\"><a target=\"_blank\" href=\"" + weatherurl + "\" onclick=\"LogAnalyticsEvent('m_Link', 'm_NWS', '" + weatherurl + "');\">NWS FORECAST (opens in new tab)</a></div>" +
+				"</div>";
+			infoWindow.setContent(content);
+			infoWindow.open(map,markers[currentIndex]);
+			LogAnalyticsEvent("m_Marker", "m_Incident", "m_(" + element.latitude + "," + element.longitude + ")");
+		}		
+		if (markers[currentIndex].elementtype=="Chain") {
+			var element = chainsArray[markers[currentIndex].elementindex];
+			var nearpoint = new google.maps.LatLng(element.latitude, element.longitude);
+			var weatherurl = "http://mobile.weather.gov/index.php?lat=" + element.latitude + "&lon=" + element.longitude + "&unit=0&lg=english";
+			
+			var chainHTML = "";
+			
+			if (element.source == "CALTRANS") {
+				chainHTML = "<div class=\"chainheader\">";
+				chainHTML = chainHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Elevation:</span> " + element["elevation"] + " ft.<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Route:</span> " + element["route"] + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Milepost:</span> " + element["milepost"] + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Status:</span> " + element["status"] + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Restrictions:</span> " + element["restrictions"] + "<br />";
+				chainHTML = chainHTML + "</div>";
+			}
+			if (element.source == "ODOT") {
+				chainHTML = "<div class=\"chainheader\">";
+				chainHTML = chainHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				if (element["mp1"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Milepost:</span> " + element["mp1"][1] + "<br />";
+				}
+				if (element["temperature"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Temperature:</span> " + element["temperature"] + "<br />";
+				}
+				if (element["pavement"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Road Conditions:</span> " + element["pavement"] + "<br />";
+				}
+				if (element["snowdepth"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Snow Depth:</span> " + element["snowdepth"] + "<br />";
+				}
+				if (element["snowoffroad"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Snow Off Road:</span> " + element["snowoffroad"] + "<br />";
+				}
+				if (element["skycoverage"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Sky Coverage:</span> " + element["skycoverage"] + "<br />";
+				}
+				if (element["restrictions"]) {
+					chainHTML = chainHTML + "<span class=\"label\">Restrictions:</span> " + element["restrictions"] + "<br />";
+				}
+				chainHTML = chainHTML + "</div>";
+			}
+			if (element.source == "WSDOT") {
+				chainHTML = "<div class=\"chainheader\">";
+				chainHTML = chainHTML + "<span class=\"label\">Updated:</span> " + formatDate(element["updated"]) + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Elevation:</span> " + element["elevation"] + " ft.<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Road Conditions:</span> " + element["road_condition"] + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Weather Conditions:</span> " + element["weathercondition"] + "<br />";
+				chainHTML = chainHTML + "<span class=\"label\">Restrictions:</span> " + element["restrictions"] + "<br />";
+				chainHTML = chainHTML + "</div>";
+			}			
+			var content = "<div onclick=\"closeInfoWindow();\">" +
+				"<div class=\"elementlocation\">" + element.location + "</div>" +
+				chainHTML +
+				"<div class=\"source\">SOURCE: " + element.source + "</div>" +
+				"<div class=\"links\"><a target=\"_blank\" href=\"" + weatherurl + "\" onclick=\"LogAnalyticsEvent('m_Link', 'm_NWS', '" + weatherurl + "');\">NWS FORECAST (opens in new tab)</a></div>" +
+				"</div>";
+			infoWindow.setContent(content);
+			infoWindow.open(map,markers[currentIndex]);
+			LogAnalyticsEvent("m_Marker", "m_Chain", "m_(" + element.latitude + "," + element.longitude + ")");
+		}
+	}
+}
+
+function closeInfoWindow() {
+	infoWindow.close();
+	RestoreMarkerAtIndex();
+	currentIndex = -1;
+	stickyWindowOpen = false;
+}
+
+function findCenterAndShowElement() {
+	var center = map.getCenter();
+	var point = fromLatLngToPoint(center,map);
+	var newPoint = new google.maps.Point(point.x, point.y + 150);
+	var newCenter = point2LatLng(newPoint,map);
+	var minindex = NearestElementIndex(newCenter);
+	HighlightMarkerAtIndex(minindex);
+	ShowCurrentElement(true);
+	//CenterAtCurrentMarker();
+}
+
+// FROM: http://krasimirtsonev.com/blog/article/google-maps-api-v3-convert-latlng-object-to-actual-pixels-point-object
+function fromLatLngToPoint(latLng, map) {
+	var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
+	var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+	var scale = Math.pow(2, map.getZoom());
+	var worldPoint = map.getProjection().fromLatLngToPoint(latLng);
+	return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale, (worldPoint.y - topRight.y) * scale);
+}
+
+function point2LatLng(point, map) {
+  var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
+  var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
+  var scale = Math.pow(2, map.getZoom());
+  var worldPoint = new google.maps.Point(point.x / scale + bottomLeft.x, point.y / scale + topRight.y);
+  return map.getProjection().fromPointToLatLng(worldPoint);
+}
+
+function CenterAtCurrentMarker() {
+	if  (currentIndex != -1) {
+		var point;
+		if (markers[currentIndex].elementtype=="CCTV") {
+			point = fromLatLngToPoint(new google.maps.LatLng(cameraArray[markers[currentIndex].elementindex].latitude, cameraArray[markers[currentIndex].elementindex].longitude),map);
+		}
+		if (markers[currentIndex].elementtype=="CMS") {
+			point = fromLatLngToPoint(new google.maps.LatLng(cmsArray[markers[currentIndex].elementindex].latitude, cmsArray[markers[currentIndex].elementindex].longitude),map);
+		}
+		if (markers[currentIndex].elementtype=="Incident") {
+			point = fromLatLngToPoint(new google.maps.LatLng(incidentsArray[markers[currentIndex].elementindex].latitude, incidentsArray[markers[currentIndex].elementindex].longitude),map);
+		}
+		if (markers[currentIndex].elementtype=="Chain") {
+			point = fromLatLngToPoint(new google.maps.LatLng(chainsArray[markers[currentIndex].elementindex].latitude, chainsArray[markers[currentIndex].elementindex].longitude),map);
+		}
+		var newPoint = new google.maps.Point(point.x, point.y - 150);
+		//map.panTo(new google.maps.LatLng(cameraArray[currentIndex].latitude, cameraArray[currentIndex].longitude));
+		map.panTo(point2LatLng(newPoint,map));
+	}
+}
+
+function NearestElementIndex(center) {
+	var mindist = 999999999.99;
+	var minindex = -1;
+	if ((cmsJSONloaded == true) && (cameraJSONloaded == true) && (incidentsJSONloaded == true)) {
+		for(var i=0; i<markers.length; i++) {
+			if (markers[i]) {
+				if (markers[i].elementtype=="CCTV") {
+					element = cameraArray[markers[i].elementindex];
+				}
+				if (markers[i].elementtype=="CMS") {
+					element = cmsArray[markers[i].elementindex];
+				}
+				if (markers[i].elementtype=="Incident") {
+					element = incidentsArray[markers[i].elementindex];
+				}
+				var dist = (center.lng() - element.longitude)*(center.lng() - element.longitude) + (center.lat() - element.latitude)*(center.lat() - element.latitude);
+				if ((dist < mindist)) {
+				//if ((dist < mindist) && (markers[i].noimage==false)) {
+					mindist = dist;
+					minindex = i;
+				}
+			}
+		};
+	}
+	return minindex;
+}
+
+function AddMapContent() {
+
+	document.getElementById("splash-panel").innerHTML += "<br>Adding Map Content ...";
+
+  	var imageBounds = {
+		north: 49.74,
+		south: 31.0,
+		east: -101.7,
+		west: -126.02
+	}; 
+
+	var weatherURL = '/data/FORECAST_WEATHER/' + weatherArray[1] + '/wx.png';	
+	wxOverlay = new google.maps.GroundOverlay(weatherURL, imageBounds, {clickable: false});
+	wxOverlay.setMap(map);
+	
+	var i;
+	markers = new Array();
+	
+	for(i = 0; i < cameraArray.length; i++) {
+		var tempurl = "" + cameraArray[i].url;
+		var temparr = tempurl.split(",");
+		var url = temparr[0];
+		var marker = null;
+		// Need to check this check - it is dropping ODOT cameras.
+		//if ((url.length > 0) && (cameraArray[i].active)) {
+		if ((url.length > 0)) {
+			marker = new google.maps.Marker({
+			  position: new google.maps.LatLng(cameraArray[i].latitude, cameraArray[i].longitude),
+			  map: map,
+			  title: 'CCTV'
+			});
+			marker.setIcon({ url: 'http://maps.gstatic.com/mapfiles/ms2/micons/camera.png',	scaledSize: new google.maps.Size(25, 25)});
+			marker.elementindex = i;
+			marker.index = markers.length;
+			marker.noimage = false;
+			marker.elementtype = "CCTV";
+			marker.setZIndex(1002);
+			marker.addListener('click', function() {
+				HighlightMarkerAtIndex(this.index);
+				var zoom = map.getZoom();
+				if (zoom < 8) {
+					map.setZoom(8);
+				}
+				ShowCurrentElement(true);
+				CenterAtCurrentMarker();
+				stickyWindowOpen = true;
+			});
+			marker.addListener('mouseover', function() {
+				if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+					HighlightMarkerAtIndex(this.index);
+					ShowCurrentElement(true);
+					stickyWindowOpen = false;
+				}
+			});
+			marker.addListener('mouseout', function() {
+				if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+					if (this.index == currentIndex) {
+						closeInfoWindow();
+						stickyWindowOpen = false;
+					}
+				}
+			});
+		}
+		markers.push(marker);
+	}
+	
+	for(i = 0; i < cmsArray.length; i++) {
+		marker = null;
+		//if ((cmsArray[i]["active"]) || (cmsArray[i]["url"])) {
+		if ((cmsArray[i]["active"])) {
+			marker = new google.maps.Marker({
+			  position: new google.maps.LatLng(cmsArray[i].latitude, cmsArray[i].longitude),
+			  map: map,
+			  title: 'CMS'
+			});
+			marker.setIcon({ url: 'http://oss.weathershare.org/icons/CMS/cms.png',	scaledSize: new google.maps.Size(24, 11)});
+			marker.elementindex = i;
+			marker.index = markers.length;
+			marker.noimage = false;
+			marker.elementtype = "CMS";
+			marker.setZIndex(1001);
+			marker.addListener('click', function() {
+				HighlightMarkerAtIndex(this.index);
+				var zoom = map.getZoom();
+				if (zoom < 8) {
+					map.setZoom(8);
+				}
+				ShowCurrentElement(true);
+				CenterAtCurrentMarker();
+				stickyWindowOpen = true;
+			});
+			marker.addListener('mouseover', function() {
+				if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+					HighlightMarkerAtIndex(this.index);
+					ShowCurrentElement(true);
+				}
+			});
+			marker.addListener('mouseout', function() {
+				if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+					if (this.index == currentIndex) {
+						closeInfoWindow();
+						stickyWindowOpen = false;
+					}
+				}
+			});
+		}
+		markers.push(marker);
+	}
+	
+	for(i = 0; i < incidentsArray.length; i++) {
+		marker = new google.maps.Marker({
+		  position: new google.maps.LatLng(incidentsArray[i].latitude, incidentsArray[i].longitude),
+		  map: map,
+		  title: 'Incident'
+		});
+		marker.setIcon({ url: 'http://oss.weathershare.org/icons/Incidents/A.png',	scaledSize: new google.maps.Size(24, 21)});
+		marker.elementindex = i;
+		marker.index = markers.length;
+		marker.noimage = false;
+		marker.elementtype = "Incident";
+		marker.setZIndex(1003);
+		marker.addListener('click', function() {
+			HighlightMarkerAtIndex(this.index);
+			var zoom = map.getZoom();
+			if (zoom < 8) {
+				map.setZoom(8);
+			}
+			ShowCurrentElement(true);
+			CenterAtCurrentMarker();
+			stickyWindowOpen = true;
+		});
+		marker.addListener('mouseover', function() {
+			if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+				HighlightMarkerAtIndex(this.index);
+				ShowCurrentElement(true);
+			}
+		});
+		marker.addListener('mouseout', function() {
+			if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+				if (this.index == currentIndex) {
+					closeInfoWindow();
+					stickyWindowOpen = false;
+				}
+			}
+		});
+		markers.push(marker);
+	}
+	
+	for(i = 0; i < chainsArray.length; i++) {
+		marker = new google.maps.Marker({
+		  position: new google.maps.LatLng(chainsArray[i].latitude, chainsArray[i].longitude),
+		  map: map,
+		  title: 'Chain Control'
+		});
+		marker.setIcon({ url: 'http://oss.weathershare.org/icons/Chain/chain.png',	scaledSize: new google.maps.Size(17, 22)});
+		marker.elementindex = i;
+		marker.index = markers.length;
+		marker.noimage = false;
+		marker.elementtype = "Chain";
+		marker.setZIndex(1000);
+		marker.addListener('click', function() {
+			HighlightMarkerAtIndex(this.index);
+			var zoom = map.getZoom();
+			if (zoom < 8) {
+				map.setZoom(8);
+			}
+			ShowCurrentElement(true);
+			CenterAtCurrentMarker();
+			stickyWindowOpen = true;
+		});
+		marker.addListener('mouseover', function() {
+			if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+				HighlightMarkerAtIndex(this.index);
+				ShowCurrentElement(true);
+			}
+		});
+		marker.addListener('mouseout', function() {
+			if ((stickyWindowOpen == false) || !(infoWindow.getMap())) {
+				if (this.index == currentIndex) {
+					closeInfoWindow();
+					stickyWindowOpen = false;
+				}
+			}
+		});
+		markers.push(marker);
+	}
+	
+	findCenterAndShowElement();
+	
+	HideSplashPanel();
+}
+
+function setNoImage(imageobject,cameraindex) {
+	imageobject.src = "/NoImage.jpg";
+	if (markers[cameraindex].noimage==false) {
+		markers[cameraindex].noimage=true;
+		markers[cameraindex].setIcon({ url: 'http://maps.google.com/mapfiles/kml/shapes/forbidden.png',	scaledSize: new google.maps.Size(30, 30)});
+		markers[cameraindex].setZIndex(0);
+	}
+}
+function HideSplashPanel() {
+	setTimeout(function(){ document.getElementById("splash-panel").style.display = 'none'; }, 1000);
+}
+</script>
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    if (window.location.hostname === "oss.weathershare.org") {
+		// Production
+		ga('create', 'UA-15870020-15', 'auto');
+	}
+	else {
+		// Development
+		ga('create', 'UA-15870020-14', 'auto');	
+	}
+	ga('send', 'pageview', location.pathname);
+</script>
+</head>
+<body onload="LoadJSON(); setTimeout(function() {LogAnalyticsEvent('m_Reload', 'm_Reload', 'm_Reload'); window.location.reload();}, 1800000);">
+<div id="splash-panel" class="splash" onclick="HideSplashPanel();">Welcome to OSS Mobile.<br>OSS Mobile works best with an LTE or high-speed wi-fi connection.<br>Please wait while we download up-to-date traveler information to your device ...<br></div>
+<div id="map"></div>
+<!-- Replace the value of the key parameter with your own API key. -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?callback=initMap"></script>
+</body>
+</html>
